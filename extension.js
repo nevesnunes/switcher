@@ -85,22 +85,34 @@ function makeBox(app, index) {
     shortcutBox.child = shortcut;
     box.insert_child_at_index(shortcutBox, 0);
   }
-  const label = new St.Label({
+  const classLabel = new St.Label({
     style_class: 'switcher-label',
     y_align: Clutter.ActorAlign.CENTER,
-    text: description(app)
+    x_align: Clutter.ActorAlign.START,
+    x_expand: true,
+    text: getClass(app)
+  });
+  let classBox = new St.BoxLayout({
+    pack_start: true
+  });
+  classBox.add(classLabel);
+  const titleLabel = new St.Label({
+    style_class: 'switcher-label',
+    y_align: Clutter.ActorAlign.CENTER,
+    x_expand: true,
+    text: app.get_title()
   });
   const iconBox = new St.Bin({style_class: 'switcher-icon'});
+  box.insert_child_at_index(titleLabel, 0);
+  box.insert_child_at_index(classBox, 0);
   const appRef = Shell.WindowTracker.get_default().get_window_app(app);
   iconBox.child = appRef.create_icon_texture(iconSize);
-  box.insert_child_at_index(label, 0);
-  label.set_x_expand(true);
   box.insert_child_at_index(iconBox, 0);
 
-  return {whole: box, shortcutBox: shortcutBox};
+  return {whole: box, classBox: classBox, shortcutBox: shortcutBox};
 }
 
-function description(app) {
+function getClass(app) {
   const appRef = Shell.WindowTracker.get_default().get_window_app(app);
   let appName;
   try {
@@ -109,7 +121,11 @@ function description(app) {
     print(e);
     appName = 'Could not get name';
   }
-    return appName + ' → ' + app.get_title();
+    return appName;
+}
+
+function description(app) {
+  return getClass(app) + ' ' + app.get_title();
 }
 
 function updateHighlight(boxes) {
@@ -152,6 +168,18 @@ function _showUI() {
 
   filteredApps = apps;
 
+  // Compute name width from length adjusted with font size. Set a reasonable
+  // limit for this width, keeping an acceptable whitespace.
+  const maxWidth = Main.layoutManager.primaryMonitor.width * 0.01 *
+          Convenience.getSettings().get_uint('max-width-percentage');
+  let classBoxSize = 0;
+  let length = filteredApps.length;
+  for (let i = 0; i < length; i++) {
+      classBoxSize = Math.max(getClass(filteredApps[i]).length, classBoxSize);
+  }
+  classBoxSize *= fontSize * 0.75;
+  classBoxSize = Math.min(classBoxSize, maxWidth * 0.25);
+
   let boxes = filteredApps.map(makeBox);
   updateHighlight(boxes);
   const entry = new St.Entry({style_class: 'switcher-entry', hint_text: 'type filter'});
@@ -170,10 +198,8 @@ function _showUI() {
   let shortcutWidth = boxes
         .map(box => box.shortcutBox ? box.shortcutBox.width : 0)
         .reduce((a, b) => Math.max(a, b), 0);
-  const maxWidth = Main.layoutManager.primaryMonitor.width * 0.01 *
-          Convenience.getSettings().get_uint('max-width-percentage');
   if (width > maxWidth) width = maxWidth;
-  boxes.forEach(box => fixWidths(box, width, shortcutWidth));
+  boxes.forEach(box => fixWidths(classBoxSize, box, width, shortcutWidth));
 
   entry.set_width(width);
 
@@ -205,7 +231,7 @@ function _showUI() {
       boxes = filteredApps.map(makeBox);
       updateHighlight(boxes);
       boxes.forEach((box) => {
-        fixWidths(box, width, shortcutWidth);
+        fixWidths(classBoxSize, box, width, shortcutWidth);
         boxLayout.insert_child_at_index(box.whole, -1);
       });
     }
@@ -217,8 +243,9 @@ function _showUI() {
   container.show();
 }
 
-function fixWidths(box, width, shortcutWidth) {
+function fixWidths(classBoxSize, box, width, shortcutWidth) {
   box.whole.set_width(width);
+  box.classBox.set_width(classBoxSize);
   box.shortcutBox && box.shortcutBox.set_width(shortcutWidth);
 }
 

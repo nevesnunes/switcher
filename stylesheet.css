@@ -1,4 +1,5 @@
 .switcher-label, .switcher-icon {
+  text-align: left;
   padding: .4em;
 }
 
