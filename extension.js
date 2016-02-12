@@ -170,14 +170,14 @@ function _showUI() {
   // limit for this width, keeping an acceptable whitespace.
   const maxWidth = Main.layoutManager.primaryMonitor.width * 0.01 *
                    Convenience.getSettings().get_uint('max-width-percentage');
-  let classBoxSize = 0;
+  let maxLength = 0;
   let length = filteredApps.length;
   for (let i = 0; i < length; i++) {
-    classBoxSize = Math.max(getClass(filteredApps[i]).length, classBoxSize);
+    maxLength = Math.max(getClass(filteredApps[i]).length, maxLength);
   }
   const fontFactor = fontSize * 0.65;
-  classBoxSize *= fontFactor;
-  classBoxSize = Math.min(classBoxSize, maxWidth * (fontFactor * 0.015));
+  let classBoxSize = maxLength * fontFactor;
+  classBoxSize = Math.min(classBoxSize, fontFactor * 16);
 
   let boxes = filteredApps.map(makeBox);
   updateHighlight(boxes);
