@@ -175,7 +175,7 @@ function _showUI() {
   for (let i = 0; i < length; i++) {
     maxLength = Math.max(getClass(filteredApps[i]).length, maxLength);
   }
-  const fontFactor = fontSize * 0.65;
+  const fontFactor = fontSize * 0.675;
   let classBoxSize = maxLength * fontFactor;
   classBoxSize = Math.min(classBoxSize, fontFactor * 16);
 
