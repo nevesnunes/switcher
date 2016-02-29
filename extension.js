@@ -88,7 +88,7 @@ function makeBox(app, index) {
   const classLabel = new St.Label({
     style_class : 'switcher-label',
     y_align : Clutter.ActorAlign.CENTER,
-    x_align : Clutter.ActorAlign.START,
+    x_align : Clutter.ActorAlign.END,
     x_expand : true,
     text : getClass(app)
   });
@@ -102,11 +102,12 @@ function makeBox(app, index) {
   });
   const iconBox = new St.Bin({style_class : 'switcher-icon'});
   box.insert_child_at_index(titleLabel, 0);
-  box.insert_child_at_index(classBox, 0);
 
   const appRef = Shell.WindowTracker.get_default().get_window_app(app);
   iconBox.child = appRef.create_icon_texture(iconSize);
   box.insert_child_at_index(iconBox, 0);
+
+  box.insert_child_at_index(classBox, 0);
 
   return {
     whole : box,
